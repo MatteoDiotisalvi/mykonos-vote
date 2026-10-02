@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mykonos Villa Vote</title>
-<meta name="description" content="Pick the villa for Mykonos, 21 to 28 July. One vote each, live results.">
+<meta name="description" content="Vote for the villas you like for Mykonos, 21 to 28 July. Live results.">
 <meta name="theme-color" content="#0B5E82">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Which villa do we book for Mykonos?">
-<meta property="og:description" content="Pick one villa. 21 to 28 July. Takes 20 seconds.">
+<meta property="og:description" content="Vote for every villa you like. 21 to 28 July. Takes 20 seconds.">
 <meta property="og:image" content="https://matteodiotisalvi.github.io/mykonos-vote/preview.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="noindex,nofollow">
@@ -117,7 +117,7 @@ main{padding-block:26px 56px}
 <header class="hero"><div class="wrap">
   <div class="eyebrow">Mykonos, 21 to 28 July &middot; final vote</div>
   <h1>Which villa do we book?</h1>
-  <p>Pick one villa. You can change your vote, or tap it again to remove it, until the vote closes. Prices are live quotes for our dates, split 14 ways, and all of them fit under the &euro;950 per person ceiling.</p>
+  <p>Vote for every villa you would be happy with. Tap a villa to add your vote, tap it again to take it back, until the vote closes. Prices are live quotes for our dates, split 14 ways, and all of them fit under the &euro;950 per person ceiling.</p>
   <div class="status">
     <div class="chip"><div class="n" id="turnout">0</div><div class="l">Have voted</div></div>
     <div class="chip"><div class="n" id="count">16</div><div class="l">Villas to choose from</div></div>
@@ -127,7 +127,7 @@ main{padding-block:26px 56px}
 
 <main class="wrap">
   <noscript><div class="notice warn"><b>This page needs JavaScript.</b> Open the link in Safari or Chrome. Previews inside WhatsApp, Files or Mail can't run it.</div></noscript>
-  <div class="notice" id="msg"><b>How it works.</b> Step 1: enter your name. Step 2: tap &ldquo;Vote for this villa&rdquo; on your pick. One vote per name, from any device. The tally appears after you vote.</div>
+  <div class="notice" id="msg"><b>How it works.</b> Step 1: enter your name. Step 2: tap &ldquo;Vote for this villa&rdquo; on every villa you like. You can vote for as many as you want, once each. The tally appears after your first vote.</div>
 
   <form class="namebox" id="namebox" autocomplete="off">
     <label for="name" id="namelabel">Step 1: your name</label>
@@ -163,7 +163,7 @@ function card(v){
   var pp = v.eur / 14;
   var photo = v.photo ? '<img class="photo" src="' + v.photo + '" alt="" loading="lazy">' : "";
   return '<article class="card" data-id="' + v.id + '">' + photo +
-    '<div class="top"><h3>' + v.name + '</h3><span class="mineflag" hidden>Your vote</span></div>' +
+    '<div class="top"><h3>' + v.name + '</h3><span class="mineflag" hidden>You voted</span></div>' +
     '<div class="price">' + eur(pp) + ' pp <small>' + eur(v.eur) + ' for the week, split 14 ways</small></div>' +
     '<div class="badges"><span class="badge ok">sleeps ' + v.guests + '</span>' + (v.bbq ? '<span class="badge ok">BBQ</span>' : '<span class="badge">no BBQ listed</span>') + '<span class="badge">' + v.areaLabel + '</span></div>' +
     '<div class="meta">' + v.beds + ' &middot; ' + v.platform + '</div>' +
@@ -195,9 +195,9 @@ function api(params){
 }
 
 function render(){
-  var d = S.data || { tally: {}, total: 0, names: [], mine: null, closed: false };
-  var mine = S.name ? d.mine : null;
-  var showResults = !!mine || d.closed;
+  var d = S.data || { tally: {}, total: 0, names: [], mine: [], closed: false };
+  var mine = S.name ? d.mine : [];
+  var showResults = mine.length > 0 || d.closed;
   var top = 0; Object.keys(d.tally).forEach(function(k){ top = Math.max(top, d.tally[k]); });
   $("turnout").textContent = d.total;
   $("turnoutbar").style.width = Math.min(100, d.total / GROUP * 100) + "%";
@@ -211,13 +211,13 @@ function render(){
   $("namechange").disabled = $("nameremove").disabled = $("namesave").disabled = S.busy;
   if (hasName && !editing) { $("who").innerHTML = "Voting as <b></b>"; $("who").querySelector("b").textContent = S.name; }
   grid.querySelectorAll(".card").forEach(function(c){
-    var id = c.dataset.id, n = d.tally[id] || 0, isMine = !!mine && mine === id;
+    var id = c.dataset.id, n = d.tally[id] || 0, isMine = mine.indexOf(id) >= 0;
     c.classList.toggle("mine", isMine);
     c.classList.toggle("lead", showResults && n > 0 && n === top);
     c.querySelector(".mineflag").hidden = !isMine;
     var btn = c.querySelector(".votebtn");
     btn.setAttribute("aria-pressed", isMine ? "true" : "false");
-    btn.textContent = d.closed ? (isMine ? "Your vote" : "Voting closed") : !hasName ? "Enter your name above to vote" : isMine ? "Your vote (tap to remove)" : (mine ? "Change my vote to this villa" : "Vote for this villa");
+    btn.textContent = d.closed ? (isMine ? "Your vote" : "Voting closed") : !hasName ? "Enter your name above to vote" : isMine ? "Voted (tap to remove)" : "Vote for this villa";
     btn.disabled = !S.loaded || S.busy || d.closed || !hasName || !!S.editing;
     var t = c.querySelector(".tally");
     t.classList.toggle("show", showResults);
@@ -253,14 +253,14 @@ function renderAdmin(){
   (d.votes || []).sort(function(a,b){ return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; }).forEach(function(x){
     var tr = document.createElement("tr");
     var a = document.createElement("td"); a.textContent = x.name;
-    var c = document.createElement("td"); c.textContent = byId[x.villa] ? byId[x.villa].name : x.villa;
+    var c = document.createElement("td"); c.textContent = (x.villas || []).map(function(id){ return byId[id] ? byId[id].name : id; }).join("; ");
     var e = document.createElement("td"); var r = document.createElement("button"); r.textContent = "Remove"; r.onclick = function(){ run({ action: "remove", name: x.name }); }; e.appendChild(r);
     tr.appendChild(a); tr.appendChild(c); tr.appendChild(e); tb.appendChild(tr);
   });
 }
 
 function apply(res){
-  S.data = { tally: res.tally || {}, total: res.total || 0, names: res.names || [], mine: res.mine || null, closed: !!res.closed, admin: !!res.admin, votes: res.votes };
+  S.data = { tally: res.tally || {}, total: res.total || 0, names: res.names || [], mine: Array.isArray(res.mine) ? res.mine : (res.mine ? [res.mine] : []), closed: !!res.closed, admin: !!res.admin, votes: res.votes };
   S.loaded = true;
 }
 
@@ -271,7 +271,7 @@ function run(params, quiet){
   return api(p).then(function(res){
     if (res && res.error === "closed") { apply(res); setMsg("done", "<b>Voting just closed.</b> Your last change was not saved."); }
     else if (res && res.error === "full") { setMsg("warn", "<b>The vote is full.</b> Ask Matteo."); }
-    else if (res && res.ok) { apply(res); S.offline = false; if (!(S.data.closed)) setMsg("", S.data.mine ? "<b>Vote saved.</b> You can change it or tap it again to remove it." : "<b>Vote removed.</b> Tap a villa to vote again."); }
+    else if (res && res.ok) { apply(res); S.offline = false; if (!(S.data.closed)) setMsg("", S.data.mine.length ? "<b>Vote saved.</b> You have voted for " + S.data.mine.length + (S.data.mine.length === 1 ? " villa" : " villas") + ". Tap more villas to add votes, or tap a voted villa to remove it." : "<b>Vote removed.</b> Tap any villas you like to vote again."); }
     else throw new Error("bad");
   }).catch(function(){
     if (!quiet) setMsg("warn", "<b>That did not go through.</b> Check your connection and tap again. Your vote only counts once you see &ldquo;Vote saved&rdquo;.");
@@ -293,8 +293,8 @@ grid.addEventListener("click", function(e){
     return;
   }
   var villa = btn.closest(".card").dataset.id;
-  var mine = S.data && S.data.mine;
-  run(mine === villa ? { action: "unvote" } : { action: "vote", villa: villa });
+  var mine = (S.data && S.data.mine) || [];
+  run(mine.indexOf(villa) >= 0 ? { action: "unvote", villa: villa } : { action: "vote", villa: villa });
 });
 
 function plain(s){ return String(s).replace(/[<>&"]/g, ""); }
@@ -307,18 +307,20 @@ $("namebox").addEventListener("submit", function(e){
   if (n.length < 2) { $("name").focus(); setMsg("warn", "<b>Enter at least 2 letters.</b>"); return; }
   if (!old) {
     S.name = n; S.editing = false; store("villaVoteName", n);
-    setMsg("", "<b>Hi " + plain(n) + ".</b> Now tap a villa. You can change or remove your name at any time.");
+    setMsg("", "<b>Hi " + plain(n) + ".</b> Now tap every villa you like. You can change or remove your name at any time.");
     run({ action: "state" }, true);
     return;
   }
   if (n === old) { S.editing = false; render(); return; }
-  var had = S.data && S.data.mine, closed = S.data && S.data.closed;
+  var had = ((S.data && S.data.mine) || []).slice(), closed = S.data && S.data.closed;
   S.busy = true; render();
   var steps = Promise.resolve();
-  if (had && !closed && n.toLowerCase() !== old.toLowerCase()) {
+  if (had.length && !closed && n.toLowerCase() !== old.toLowerCase()) {
     steps = api({ action: "unvote", name: old }).then(function(){ return api({ action: "state", name: n }); }).then(function(r){
-      if (r && r.ok && !r.mine) return api({ action: "vote", name: n, villa: had });
-      return r;
+      if (!(r && r.ok) || r.mine.length) return r;
+      var chain = Promise.resolve(r);
+      had.forEach(function(v){ chain = chain.then(function(){ return api({ action: "vote", name: n, villa: v }); }); });
+      return chain;
     });
   } else {
     steps = api({ action: "state", name: n });
@@ -326,7 +328,7 @@ $("namebox").addEventListener("submit", function(e){
   steps.then(function(res){
     if (!res || !res.ok) throw new Error("bad");
     S.name = n; S.editing = false; store("villaVoteName", n); apply(res);
-    setMsg("", "<b>Name changed to " + plain(n) + ".</b>" + (had && !closed ? " Your vote moved with it." : ""));
+    setMsg("", "<b>Name changed to " + plain(n) + ".</b>" + (had.length && !closed ? " Your votes moved with it." : ""));
   }).catch(failed).then(function(){ S.busy = false; render(); });
 });
 $("namechange").addEventListener("click", function(){
@@ -336,18 +338,18 @@ $("namecancel").addEventListener("click", function(){ S.editing = false; $("name
 var removeTimer = null;
 $("nameremove").addEventListener("click", function(){
   if (S.busy) return;
-  var had = S.data && S.data.mine && !S.data.closed;
+  var had = !!(S.data && S.data.mine && S.data.mine.length && !S.data.closed);
   var btn = $("nameremove");
   if (had && !S.confirmRemove) {
-    S.confirmRemove = true; btn.textContent = "Tap again: remove name and vote";
+    S.confirmRemove = true; btn.textContent = "Tap again: remove name and votes";
     clearTimeout(removeTimer); removeTimer = setTimeout(function(){ S.confirmRemove = false; btn.textContent = "Remove name"; }, 5000);
     return;
   }
   clearTimeout(removeTimer); S.confirmRemove = false; btn.textContent = "Remove name";
   var done = function(res){
     S.name = ""; S.editing = false; store("villaVoteName", ""); $("name").value = "";
-    if (res && res.ok) apply(res); else if (S.data) S.data.mine = null;
-    setMsg("", "<b>Name removed.</b>" + (had ? " Your vote was removed too." : "") + " Enter a name to vote again.");
+    if (res && res.ok) apply(res); else if (S.data) S.data.mine = [];
+    setMsg("", "<b>Name removed.</b>" + (had ? " Your votes were removed too." : "") + " Enter a name to vote again.");
   };
   S.busy = true; render();
   (had ? api({ action: "unvote", name: S.name }) : Promise.resolve(null)).then(function(res){
