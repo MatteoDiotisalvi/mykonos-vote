@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mykonos Villa Vote</title>
+<meta name="description" content="Pick the villa for Mykonos, 21 to 28 July. One vote each, live results.">
+<meta name="theme-color" content="#0B5E82">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Which villa do we book for Mykonos?">
+<meta property="og:description" content="Pick one villa. 21 to 28 July. Takes 20 seconds.">
+<meta property="og:image" content="https://matteodiotisalvi.github.io/mykonos-vote/preview.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B5E82'/%3E%3Cpath d='M7 16l6 6 12-12' fill='none' stroke='%23FBF7EC' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sunlit Aegean header, a name box, then a grid of villa cards each with one clear Vote button. Same palette and type as the Mykonos Send-Off page. */
+:root{
+  --bg:#F6F1E6; --surface:#FFFFFF; --surface-2:#EAE1CE; --ink:#211D16; --ink-soft:#6B6153; --line:#DDD2B8;
+  --aegean:#0B5E82; --aegean-soft:#DDEDF2; --terracotta:#BD5B2A; --terracotta-soft:#F5E3D3;
+  --gold:#8A6A1E; --gold-soft:#EFE4C4; --on-accent:#FBF7EC;
+  --font-display:"Fraunces","Iowan Old Style",Georgia,serif;
+  --font-body:"Work Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#12191B; --surface:#1A2225; --surface-2:#212B2E; --ink:#F1ECE0; --ink-soft:#AFB6B2; --line:#324044;
+    --aegean:#66BEE0; --aegean-soft:#1C3339; --terracotta:#E89A63; --terracotta-soft:#3A2A1E;
+    --gold:#D9BD6F; --gold-soft:#332C18; --on-accent:#0F1A1D; color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;margin:0;text-wrap:balance}
+a{color:inherit}
+button,input{font:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--aegean);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1080px;margin-inline:auto;padding-inline:16px}
+
+.hero{padding-block:36px 26px;background:linear-gradient(180deg,#0B5E82 0%,color-mix(in srgb,#0B5E82 70%,var(--bg)) 70%,var(--bg) 100%)}
+.eyebrow{font-family:var(--font-display);font-style:italic;font-weight:500;color:#EAF6FB;font-size:15px;margin-bottom:8px}
+.hero h1{font-size:clamp(30px,6vw,50px);line-height:1.04;color:#FBF7EC}
+.hero p{color:#EAF3F6;font-size:16px;line-height:1.5;max-width:52ch;margin:12px 0 0}
+.status{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:9px 14px;color:#FBF7EC;min-width:0}
+.chip .n{font-family:var(--font-display);font-weight:600;font-size:20px;font-variant-numeric:tabular-nums}
+.chip .l{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;opacity:.88;margin-top:2px}
+.bar{margin-top:20px;height:8px;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden;max-width:420px}
+.bar>i{display:block;height:100%;background:#EFE4C4;width:0;transition:width .3s ease}
+
+main{padding-block:26px 56px}
+.notice{background:var(--aegean-soft);border-radius:12px;padding:14px 16px;line-height:1.55;margin-bottom:18px}
+.notice b{color:var(--aegean)}
+.notice.warn{background:var(--terracotta-soft)}
+.notice.warn b{color:var(--terracotta)}
+.notice.done{background:var(--gold-soft)}
+.notice.done b{color:var(--gold)}
+[hidden]{display:none!important}
+
+.namebox{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:22px}
+.namebox label{font-weight:700;color:var(--aegean);min-width:0}
+.namebox input{flex:1 1 180px;min-width:0;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px}
+.namebox button{border:0;background:var(--aegean);color:var(--on-accent);font-weight:700;padding:10px 16px;border-radius:10px;cursor:pointer}
+.namebox button.ghost{background:transparent;color:var(--aegean);border:1px solid var(--aegean)}
+.namebox .who{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.namebox.need{border-color:var(--terracotta);box-shadow:0 0 0 2px var(--terracotta)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,310px),1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0;transition:border-color .15s ease,box-shadow .15s ease}
+.card.mine{border-color:var(--aegean);box-shadow:0 0 0 2px var(--aegean)}
+.photo{margin:-18px -18px 0;width:calc(100% + 36px);max-width:none;height:170px;object-fit:cover;display:block;border-radius:13px 13px 0 0;background:var(--surface-2)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.card h3{font-size:19px;line-height:1.2;min-width:0}
+.mineflag{flex:none;background:var(--aegean);color:var(--on-accent);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:7px}
+.price{font-family:var(--font-display);font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
+.price small{font-family:var(--font-body);font-weight:500;font-size:12px;color:var(--ink-soft)}
+.meta{font-size:13px;color:var(--ink-soft);line-height:1.5}
+.badges,.dists{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;background:var(--surface-2);color:var(--ink-soft)}
+.badge.ok{background:var(--aegean-soft);color:var(--aegean)}
+.dist{font-size:12.5px;padding:4px 10px;border-radius:6px;font-variant-numeric:tabular-nums}
+.dist.town{background:var(--gold-soft);color:var(--gold)}
+.dist.clubs{background:var(--terracotta-soft);color:var(--terracotta)}
+.dist b{font-weight:700}
+.foot{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:10px;border-top:1px solid var(--line)}
+.viewlink{font-size:13px;font-weight:600;color:var(--aegean);text-decoration:none}
+.viewlink:hover{text-decoration:underline}
+.votebtn{width:100%;border:1px solid var(--aegean);background:var(--surface);color:var(--aegean);font-weight:700;font-size:14.5px;padding:11px 14px;border-radius:10px;cursor:pointer;transition:background .15s ease,color .15s ease}
+.votebtn:hover:not(:disabled){background:var(--aegean-soft)}
+.votebtn[aria-pressed="true"]{background:var(--aegean);color:var(--on-accent)}
+.votebtn:disabled{opacity:.55;cursor:default}
+.tally{display:none;align-items:center;gap:10px;font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink-soft)}
+.tally.show{display:flex}
+.tally .track{flex:1;min-width:0;height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.tally .track i{display:block;height:100%;background:var(--terracotta);width:0;transition:width .3s ease}
+.tally b{color:var(--ink);min-width:2.2em;text-align:right}
+.lead{border-color:var(--terracotta)}
+.lead .tally b{color:var(--terracotta)}
+.voted{font-size:13px;color:var(--ink-soft);line-height:1.6;margin:22px 0 0;overflow-wrap:anywhere}
+.voted b{color:var(--ink)}
+
+.admin{margin-top:30px;background:var(--surface);border:1px solid var(--terracotta);border-radius:14px;padding:16px}
+.admin h2{font-size:20px;margin-bottom:10px}
+.admin table{width:100%;border-collapse:collapse;font-size:13px}
+.admin td{padding:6px 4px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.admin .row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.admin button{border:1px solid var(--terracotta);background:transparent;color:var(--terracotta);font-weight:700;padding:8px 12px;border-radius:9px;cursor:pointer}
+.foot-note{font-size:12px;color:var(--ink-soft);line-height:1.6;margin-top:30px;padding-top:16px;border-top:1px solid var(--line)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Mykonos, 21 to 28 July &middot; final vote</div>
+  <h1>Which villa do we book?</h1>
+  <p>Pick one villa. You can change your vote, or tap it again to remove it, until the vote closes. Prices are live quotes for our dates, split 14 ways, and all of them fit under the &euro;950 per person ceiling.</p>
+  <div class="status">
+    <div class="chip"><div class="n" id="turnout">0</div><div class="l">Have voted</div></div>
+    <div class="chip"><div class="n" id="count">16</div><div class="l">Villas to choose from</div></div>
+  </div>
+  <div class="bar" aria-hidden="true"><i id="turnoutbar"></i></div>
+</div></header>
+
+<main class="wrap">
+  <noscript><div class="notice warn"><b>This page needs JavaScript.</b> Open the link in Safari or Chrome. Previews inside WhatsApp, Files or Mail can't run it.</div></noscript>
+  <div class="notice" id="msg"><b>How it works.</b> Type your name once, then tap &ldquo;Vote for this villa&rdquo; on your pick. One vote per name, from any device. The tally appears after you vote.</div>
+
+  <form class="namebox" id="namebox" autocomplete="off">
+    <label for="name" id="namelabel">Your name</label>
+    <input id="name" name="name" type="text" maxlength="40" placeholder="First name and initial, e.g. Matteo D" enterkeyhint="done" autocapitalize="words">
+    <button type="submit" id="namesave">Save name</button>
+    <span class="who" id="who" hidden></span>
+    <button type="button" class="ghost" id="namechange" hidden>Change</button>
+  </form>
+
+  <div class="grid" id="grid"></div>
+  <p class="voted" id="voted" hidden></p>
+  <section class="admin" id="admin" hidden></section>
+  <p class="foot-note">Prices are live Airbnb, Vrbo or Booking.com quotes for 21 to 28 July 2027 checked on 1 October 2026, and can change before booking. Per person is the 7-night total divided by 14, so one dropout adds about 7% to everyone else. The group is likely 18, so beds need confirming with the host for each of these villas. Distances are driving distances from the listing's map pin. Villas Kappas and 10 Stars appeared as two listings but share one licence number, so they are shown here as one villa.</p>
+</main>
+
+<script>
+(function(){
+var API = "https://script.google.com/macros/s/AKfycbz7OgOb51Q6rMS814Hf0PVY9ngx48nNOf-s2BHp2AcSiXlTM8IOXthL4_uXyh1yfyCXOQ/exec";
+var GROUP = 18;
+var VILLAS = [{"id":"polymnia-9-muses","name":"9 Muses Villa Polymnia (Ornos View Villas, Villa One)","url":"https://www.vrbo.com/pdp/lo/31952520","platform":"Vrbo &middot; also Airbnb, Booking.com and the agency","areaLabel":"Agios Lazaros, Ornos","guests":14,"beds":"6 bed / 7 bath (5 queens, 1 sofa bed, 2 singles)","eur":12260,"style":"Private infinity pool, 500m from Ornos Beach. The agency page shows the same villa under its own name, so book through whichever is cheapest.","dt":3.5,"dc":4,"bbq":true,"rv":"9.8/10, 7 reviews (Vrbo)","photo":"img/polymnia-9-muses.jpg"},{"id":"villa-z-ornos","name":"Villa Z","url":"https://www.vrbo.com/2790666","platform":"Vrbo","areaLabel":"Ornos","guests":14,"beds":"7 bed (7 double beds)","eur":10234,"style":"Two private pools and sea views, close to Ornos beach and Town.","dt":4.5,"dc":5,"bbq":false,"rv":"no guest reviews found","photo":"img/villa-z-ornos.jpg"},{"id":"homerez-luxury-villa","name":"Luxury Villa in Mykonos with Private Pool","url":"https://www.airbnb.com/rooms/46125089","platform":"Airbnb (Homerez)","areaLabel":"East coast, exact spot after booking","guests":15,"beds":"6 bed (8 beds; listing says 12 baths)","eur":10488,"style":"Private outdoor pool. A brand-new listing with no reviews and a vague description, so ask the host for the layout and real photos before committing.","dt":10.5,"dc":8.5,"bbq":true,"rv":"no guest reviews found","photo":"img/homerez-luxury-villa.jpg"},{"id":"denia-seaside-5bed","name":"Denia Seaside Villas (5-bedroom villa)","url":"https://www.vrbo.com/pdp/lo/124323070","platform":"Vrbo &middot; also Airbnb and Booking.com","areaLabel":"Ornos","guests":14,"beds":"5 bed (7 beds)","eur":11009,"style":"Private heated pool and sea views. Only 5 bedrooms for 14, so expect 3 to a room in places.","dt":2.5,"dc":6.5,"bbq":true,"rv":"10/10, only 1 review (Vrbo)","photo":"img/denia-seaside-5bed.jpg"},{"id":"panormos-panorama","name":"Panormos Panorama (two-villa compound)","url":"https://www.vrbo.com/11216703ha","platform":"Vrbo","areaLabel":"Panormos, near Principote beach club","guests":16,"beds":"8 bed across two villas (8 queen beds)","eur":11277,"style":"Two villas around a shared courtyard pool, plus a hot tub. You rent both villas, but the listing says \"outdoor pool\" rather than \"private pool\", so confirm nobody else uses it.","dt":6,"dc":9,"bbq":false,"rv":"10/10, 2 reviews (Vrbo)","photo":"img/panormos-panorama.jpg"},{"id":"ftelia-boheme","name":"Villa Ftelia Boheme","url":"https://www.airbnb.com/rooms/880201753557285493","platform":"Airbnb","areaLabel":"Ftelia","guests":16,"beds":"8 bed / 9 bath (8 beds)","eur":11488,"style":"Private pool, one en-suite bathroom per bedroom. Ftelia is a windy north-coast bay, quiet and far from the clubs.","dt":6.5,"dc":9.5,"bbq":true,"rv":"5.0 stars, only 2 reviews (Airbnb)","photo":"img/ftelia-boheme.jpg"},{"id":"private-villa-44","name":"Private Villa 44","url":"https://www.airbnb.com/rooms/1639192104965936663","platform":"Airbnb","areaLabel":"East coast, exact spot after booking","guests":14,"beds":"6 bed / 6 bath (8 beds)","eur":11652,"style":"Private outdoor pool. New listing with no reviews yet.","dt":11,"dc":10.5,"bbq":true,"rv":"no guest reviews found","photo":"img/private-villa-44.jpg"},{"id":"ornos-hot-tub-villa","name":"Ornos Villa with Hot Tub (Vrbo 1006666)","url":"https://www.vrbo.com/1006666","platform":"Vrbo","areaLabel":"Ornos, 6 min drive to Psarou","guests":16,"beds":"7 bed (7 beds, plus a guest house)","eur":11872,"style":"Private heated infinity pool, new hot tub, BBQ terrace and a detached guest house.","dt":4.5,"dc":5,"bbq":true,"rv":"8.8/10, 15 reviews (Vrbo)","photo":"img/ornos-hot-tub-villa.jpg"},{"id":"tohu-villas","name":"Tohu Villas (6-bedroom Deluxe Villa)","url":"https://www.vrbo.com/pdp/lo/59182540","platform":"Vrbo &middot; also Booking.com","areaLabel":"Kanalia","guests":14,"beds":"6 bed / 6 bath (8 beds)","eur":11945,"style":"Modern stone villa with a private pool, in the same Kanalia area as Villa Korfos and Cosset.","dt":5,"dc":8.5,"bbq":true,"rv":"9.8/10, 16 reviews (Vrbo)","photo":"img/tohu-villas.jpg"},{"id":"villa-bella-psarou","name":"Villa Bella Mykonos","url":"https://www.airbnb.com/rooms/1718886880943502996","platform":"Airbnb","areaLabel":"Psarou","guests":16,"beds":"6 bed / 6 bath (12 beds)","eur":12620,"style":"Private heated pool and a private charcoal BBQ. Host says 10 minutes to Town and to Scorpios.","dt":4,"dc":5,"bbq":true,"rv":"5.0 stars, only 1 review (Airbnb)","photo":"img/villa-bella-psarou.jpg"},{"id":"villa-anatoli","name":"Villa Anatoli","url":"https://www.booking.com/hotel/gr/villa-anatoli-mykonos.html","platform":"Booking.com","areaLabel":"Above Agios Sostis","guests":14,"beds":"6 bed / 5 bath (6 extra-large double beds)","eur":12855,"style":"Private pool with sea views, 8 minutes' walk to Agios Sostis beach. Booking.com offers it for 14 adults, but 6 double beds sleep 12, so ask where the other two sleep.","dt":8.5,"dc":11.5,"bbq":true,"rv":"9.1/10, 27 reviews (Booking.com)","photo":"img/villa-anatoli.png"},{"id":"majestic-kalafatis","name":"Majestic Mykonos Villa (Kalafatis)","url":"https://www.vrbo.com/4394913","platform":"Vrbo","areaLabel":"Kalafatis / Agia Anna beach","guests":16,"beds":"7 bed / 7 bath","eur":12923,"style":"Seafront villa with a private infinity pool, four beaches within walking distance. Its map pin matches the Sea &amp; Sun Villa, so it may be in the same complex.","dt":11.5,"dc":10.5,"bbq":true,"rv":"no guest reviews found","photo":"img/majestic-kalafatis.jpg"},{"id":"cosset-villa","name":"Cosset Villa (One Villas)","url":"https://www.airbnb.com/rooms/594061474966829177","platform":"Airbnb &middot; also Booking.com","areaLabel":"Kanalia, above Ornos Bay","guests":14,"beds":"7 bed / 5.5 bath (9 beds)","eur":12965,"style":"Boho-style villa with a private pool, private charcoal BBQ and sunset views over Ornos Bay.","dt":5.5,"dc":9,"bbq":true,"rv":"5.0 stars, 55 reviews (Airbnb)","photo":"img/cosset-villa.jpg"},{"id":"amallini-suites","name":"Amallini Suites Villa","url":"https://www.airbnb.com/rooms/14158512","platform":"Airbnb &middot; also Vrbo and Booking.com","areaLabel":"Plintri, above Super Paradise","guests":14,"beds":"4 bed / 5.5 bath (10 beds)","eur":13002,"style":"Private infinity pool and jacuzzi with sea views. Only 4 bedrooms for 14, so most people would share 3 or 4 to a room.","dt":5.5,"dc":3.5,"bbq":false,"rv":"10/10, 24 reviews (Booking.com)","photo":"img/amallini-suites.jpg"},{"id":"casa-di-meli","name":"Casa di Meli Private Villa","url":"https://www.booking.com/hotel/gr/casa-di-meli-private-villa.html","platform":"Booking.com &middot; also Vrbo","areaLabel":"Kanalia","guests":14,"beds":"7 bed / 7 bath (8 beds)","eur":13189,"style":"Booking.com lists an indoor pool plus a swimming pool but never says \"private\", and one review calls it \"cool for 10 people\". Confirm the pool and the real sleeping capacity first.","dt":5.5,"dc":9.5,"bbq":true,"rv":"8.0/10, only 1 review (Booking.com)","photo":"img/casa-di-meli.jpg"},{"id":"ten-stars-vrbo","name":"10 Stars Infinity Sea View Villa (also listed as Villas Kappas)","url":"https://www.vrbo.com/999888ha","platform":"Vrbo &middot; also Booking.com and Airbnb","areaLabel":"Agios Sostis","guests":14,"beds":"6 bed / 5 bath (9 beds)","eur":10588,"style":"Private infinity pool with its own pool bar and sea views, about 500 m from Agios Sostis beach. Booking.com charges about &euro;12,980 for the same villa.","dt":8.5,"dc":10.5,"bbq":true,"rv":"10/10, 55 reviews (Vrbo)","photo":"img/ten-stars-vrbo.jpg"}];
+var eur = function(n){ return "€" + Math.round(n).toLocaleString("en-GB"); };
+VILLAS.sort(function(a,b){ return a.eur - b.eur; });
+var byId = {}; VILLAS.forEach(function(v){ byId[v.id] = v; });
+var $ = function(id){ return document.getElementById(id); };
+document.getElementById("count").textContent = VILLAS.length;
+
+function store(k, v){ try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+function strip(s){ return String(s || "").replace(/[\u0000-\u001f<>&"]/g, "").replace(/\s+/g, " ").trim().slice(0, 40); }
+
+function card(v){
+  var pp = v.eur / 14;
+  var photo = v.photo ? '<img class="photo" src="' + v.photo + '" alt="" loading="lazy">' : "";
+  return '<article class="card" data-id="' + v.id + '">' + photo +
+    '<div class="top"><h3>' + v.name + '</h3><span class="mineflag" hidden>Your vote</span></div>' +
+    '<div class="price">' + eur(pp) + ' pp <small>' + eur(v.eur) + ' for the week, split 14 ways</small></div>' +
+    '<div class="badges"><span class="badge ok">sleeps ' + v.guests + '</span>' + (v.bbq ? '<span class="badge ok">BBQ</span>' : '<span class="badge">no BBQ listed</span>') + '<span class="badge">' + v.areaLabel + '</span></div>' +
+    '<div class="meta">' + v.beds + ' &middot; ' + v.platform + '</div>' +
+    '<div class="meta">Reviews: ' + v.rv + '</div>' +
+    '<div class="dists"><span class="dist town"><b>&asymp;' + v.dt + ' km</b> to town</span><span class="dist clubs"><b>&asymp;' + v.dc + ' km</b> to clubs</span></div>' +
+    '<div class="meta">' + v.style + '</div>' +
+    '<div class="foot"><div class="tally"><div class="track"><i></i></div><b>0</b></div>' +
+    '<button type="button" class="votebtn" aria-pressed="false" disabled>Vote for this villa</button>' +
+    '<a class="viewlink" href="' + v.url + '" target="_blank" rel="noopener">View listing &#8599;</a></div></article>';
+}
+var grid = $("grid");
+grid.innerHTML = VILLAS.map(card).join("");
+
+var S = { name: strip(store("villaVoteName")), data: null, busy: false, loaded: false, offline: false };
+var ADMIN_KEY = (location.hash.match(/admin=([A-Za-z0-9]+)/) || [])[1] || "";
+var msg = $("msg");
+
+function setMsg(cls, html){ msg.className = "notice" + (cls ? " " + cls : ""); msg.innerHTML = html; }
+
+function api(params){
+  var q = new URLSearchParams(params);
+  if (ADMIN_KEY) q.set("key", ADMIN_KEY);
+  q.set("_", Date.now());
+  var ctl = typeof AbortController === "function" ? new AbortController() : null;
+  var timer = ctl ? setTimeout(function(){ ctl.abort(); }, 20000) : null;
+  return fetch(API + "?" + q.toString(), { cache: "no-store", signal: ctl ? ctl.signal : undefined })
+    .then(function(r){ return r.text(); })
+    .then(function(t){ if (timer) clearTimeout(timer); return JSON.parse(t); });
+}
+
+function render(){
+  var d = S.data || { tally: {}, total: 0, names: [], mine: null, closed: false };
+  var mine = S.name ? d.mine : null;
+  var showResults = !!mine || d.closed;
+  var top = 0; Object.keys(d.tally).forEach(function(k){ top = Math.max(top, d.tally[k]); });
+  $("turnout").textContent = d.total;
+  $("turnoutbar").style.width = Math.min(100, d.total / GROUP * 100) + "%";
+  var hasName = !!S.name;
+  $("name").hidden = $("namesave").hidden = $("namelabel").hidden = hasName;
+  $("who").hidden = $("namechange").hidden = !hasName;
+  if (hasName) $("who").innerHTML = "Voting as <b></b>";
+  if (hasName) $("who").querySelector("b").textContent = S.name;
+  grid.querySelectorAll(".card").forEach(function(c){
+    var id = c.dataset.id, n = d.tally[id] || 0, isMine = !!mine && mine === id;
+    c.classList.toggle("mine", isMine);
+    c.classList.toggle("lead", showResults && n > 0 && n === top);
+    c.querySelector(".mineflag").hidden = !isMine;
+    var btn = c.querySelector(".votebtn");
+    btn.setAttribute("aria-pressed", isMine ? "true" : "false");
+    btn.textContent = d.closed ? (isMine ? "Your vote" : "Voting closed") : isMine ? "Your vote (tap to remove)" : (mine ? "Change my vote to this villa" : "Vote for this villa");
+    btn.disabled = !S.loaded || S.busy || d.closed;
+    var t = c.querySelector(".tally");
+    t.classList.toggle("show", showResults);
+    t.querySelector("i").style.width = (d.total ? n / d.total * 100 : 0) + "%";
+    t.querySelector("b").textContent = n;
+  });
+  var v = $("voted");
+  if (showResults && d.names.length) {
+    v.hidden = false;
+    v.innerHTML = "<b>Voted so far (" + d.names.length + "):</b> ";
+    v.appendChild(document.createTextNode(d.names.join(", ")));
+  } else { v.hidden = true; }
+  if (d.closed && S.loaded) {
+    var lead = Object.keys(d.tally).filter(function(k){ return d.tally[k] === top && top > 0; });
+    var names = lead.map(function(k){ return byId[k] ? byId[k].name : k; });
+    setMsg("done", "<b>Voting is closed.</b> " + (names.length === 1 ? "The winner is " + names[0] + "." : names.length > 1 ? "It is a tie between " + names.join(" and ") + "." : "No votes were cast."));
+  }
+  renderAdmin();
+}
+
+function renderAdmin(){
+  var box = $("admin");
+  var d = S.data;
+  if (!ADMIN_KEY || !d || !d.admin) { box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = "<h2>Admin</h2><div class='row'></div><table></table>";
+  var row = box.querySelector(".row");
+  var b = document.createElement("button");
+  b.textContent = d.closed ? "Reopen voting" : "Close voting";
+  b.onclick = function(){ run({ action: d.closed ? "reopen" : "close" }); };
+  row.appendChild(b);
+  var tb = box.querySelector("table");
+  (d.votes || []).sort(function(a,b){ return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; }).forEach(function(x){
+    var tr = document.createElement("tr");
+    var a = document.createElement("td"); a.textContent = x.name;
+    var c = document.createElement("td"); c.textContent = byId[x.villa] ? byId[x.villa].name : x.villa;
+    var e = document.createElement("td"); var r = document.createElement("button"); r.textContent = "Remove"; r.onclick = function(){ run({ action: "remove", name: x.name }); }; e.appendChild(r);
+    tr.appendChild(a); tr.appendChild(c); tr.appendChild(e); tb.appendChild(tr);
+  });
+}
+
+function apply(res){
+  S.data = { tally: res.tally || {}, total: res.total || 0, names: res.names || [], mine: res.mine || null, closed: !!res.closed, admin: !!res.admin, votes: res.votes };
+  S.loaded = true;
+}
+
+function run(params, quiet){
+  if (S.busy) return Promise.resolve();
+  S.busy = true; render();
+  var p = Object.assign({ name: S.name }, params);
+  return api(p).then(function(res){
+    if (res && res.error === "closed") { apply(res); setMsg("done", "<b>Voting just closed.</b> Your last change was not saved."); }
+    else if (res && res.error === "full") { setMsg("warn", "<b>The vote is full.</b> Ask Matteo."); }
+    else if (res && res.ok) { apply(res); S.offline = false; if (!(S.data.closed)) setMsg("", S.data.mine ? "<b>Vote saved.</b> You can change it or tap it again to remove it." : "<b>How it works.</b> Type your name once, then tap &ldquo;Vote for this villa&rdquo; on your pick."); }
+    else throw new Error("bad");
+  }).catch(function(){
+    if (!quiet) setMsg("warn", "<b>That did not go through.</b> Check your connection and tap again. Your vote only counts once you see &ldquo;Vote saved&rdquo;.");
+    S.offline = true;
+  }).then(function(){ S.busy = false; render(); });
+}
+
+function refresh(){
+  if (S.busy || document.hidden) return;
+  api({ action: "state", name: S.name }).then(function(res){ if (res && res.ok) { apply(res); if (S.offline) { S.offline = false; setMsg("", "<b>Back online.</b>"); } render(); } }).catch(function(){});
+}
+
+grid.addEventListener("click", function(e){
+  var btn = e.target.closest ? e.target.closest(".votebtn") : null;
+  if (!btn || btn.disabled) return;
+  if (!S.name) {
+    var nb = $("namebox"); nb.classList.add("need"); $("name").focus();
+    setMsg("warn", "<b>Type your name first.</b> It keeps it to one vote per person.");
+    return;
+  }
+  var villa = btn.closest(".card").dataset.id;
+  var mine = S.data && S.data.mine;
+  run(mine === villa ? { action: "unvote" } : { action: "vote", villa: villa });
+});
+
+$("namebox").addEventListener("submit", function(e){
+  e.preventDefault();
+  var n = strip($("name").value);
+  if (n.length < 2) { $("name").focus(); return; }
+  S.name = n; store("villaVoteName", n); $("namebox").classList.remove("need");
+  setMsg("", "<b>Hi " + n.replace(/[<>&"]/g, "") + ".</b> Now tap a villa.");
+  run({ action: "state" }, true);
+});
+$("namechange").addEventListener("click", function(){
+  S.name = ""; store("villaVoteName", ""); $("name").value = "";
+  render(); $("name").focus();
+});
+if (S.name) $("name").value = S.name;
+
+render();
+api({ action: "state", name: S.name }).then(function(res){ if (res && res.ok) apply(res); else throw 0; render(); })
+  .catch(function(){ setMsg("warn", "<b>The vote could not be reached.</b> Reload the page. If it keeps failing, check your connection."); });
+setInterval(refresh, 20000);
+document.addEventListener("visibilitychange", function(){ if (!document.hidden) refresh(); });
+})();
+</script>
+</body>
+</html>
