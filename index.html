@@ -127,14 +127,16 @@ main{padding-block:26px 56px}
 
 <main class="wrap">
   <noscript><div class="notice warn"><b>This page needs JavaScript.</b> Open the link in Safari or Chrome. Previews inside WhatsApp, Files or Mail can't run it.</div></noscript>
-  <div class="notice" id="msg"><b>How it works.</b> Type your name once, then tap &ldquo;Vote for this villa&rdquo; on your pick. One vote per name, from any device. The tally appears after you vote.</div>
+  <div class="notice" id="msg"><b>How it works.</b> Step 1: enter your name. Step 2: tap &ldquo;Vote for this villa&rdquo; on your pick. One vote per name, from any device. The tally appears after you vote.</div>
 
   <form class="namebox" id="namebox" autocomplete="off">
-    <label for="name" id="namelabel">Your name</label>
+    <label for="name" id="namelabel">Step 1: your name</label>
     <input id="name" name="name" type="text" maxlength="40" placeholder="First name and initial, e.g. Matteo D" enterkeyhint="done" autocapitalize="words">
-    <button type="submit" id="namesave">Save name</button>
+    <button type="submit" id="namesave">Continue</button>
+    <button type="button" class="ghost" id="namecancel" hidden>Cancel</button>
     <span class="who" id="who" hidden></span>
-    <button type="button" class="ghost" id="namechange" hidden>Change</button>
+    <button type="button" class="ghost" id="namechange" hidden>Change name</button>
+    <button type="button" class="ghost" id="nameremove" hidden>Remove name</button>
   </form>
 
   <div class="grid" id="grid"></div>
@@ -199,11 +201,15 @@ function render(){
   var top = 0; Object.keys(d.tally).forEach(function(k){ top = Math.max(top, d.tally[k]); });
   $("turnout").textContent = d.total;
   $("turnoutbar").style.width = Math.min(100, d.total / GROUP * 100) + "%";
-  var hasName = !!S.name;
-  $("name").hidden = $("namesave").hidden = $("namelabel").hidden = hasName;
-  $("who").hidden = $("namechange").hidden = !hasName;
-  if (hasName) $("who").innerHTML = "Voting as <b></b>";
-  if (hasName) $("who").querySelector("b").textContent = S.name;
+  var hasName = !!S.name, editing = !hasName || S.editing;
+  $("name").hidden = $("namesave").hidden = $("namelabel").hidden = !editing;
+  $("namecancel").hidden = !(hasName && S.editing);
+  $("who").hidden = $("namechange").hidden = $("nameremove").hidden = editing;
+  $("namesave").textContent = hasName ? "Save name" : "Continue";
+  $("namelabel").textContent = hasName ? "Your name" : "Step 1: your name";
+  $("namebox").classList.toggle("need", !hasName);
+  $("namechange").disabled = $("nameremove").disabled = $("namesave").disabled = S.busy;
+  if (hasName && !editing) { $("who").innerHTML = "Voting as <b></b>"; $("who").querySelector("b").textContent = S.name; }
   grid.querySelectorAll(".card").forEach(function(c){
     var id = c.dataset.id, n = d.tally[id] || 0, isMine = !!mine && mine === id;
     c.classList.toggle("mine", isMine);
@@ -211,8 +217,8 @@ function render(){
     c.querySelector(".mineflag").hidden = !isMine;
     var btn = c.querySelector(".votebtn");
     btn.setAttribute("aria-pressed", isMine ? "true" : "false");
-    btn.textContent = d.closed ? (isMine ? "Your vote" : "Voting closed") : isMine ? "Your vote (tap to remove)" : (mine ? "Change my vote to this villa" : "Vote for this villa");
-    btn.disabled = !S.loaded || S.busy || d.closed;
+    btn.textContent = d.closed ? (isMine ? "Your vote" : "Voting closed") : !hasName ? "Enter your name above to vote" : isMine ? "Your vote (tap to remove)" : (mine ? "Change my vote to this villa" : "Vote for this villa");
+    btn.disabled = !S.loaded || S.busy || d.closed || !hasName || !!S.editing;
     var t = c.querySelector(".tally");
     t.classList.toggle("show", showResults);
     t.querySelector("i").style.width = (d.total ? n / d.total * 100 : 0) + "%";
@@ -265,7 +271,7 @@ function run(params, quiet){
   return api(p).then(function(res){
     if (res && res.error === "closed") { apply(res); setMsg("done", "<b>Voting just closed.</b> Your last change was not saved."); }
     else if (res && res.error === "full") { setMsg("warn", "<b>The vote is full.</b> Ask Matteo."); }
-    else if (res && res.ok) { apply(res); S.offline = false; if (!(S.data.closed)) setMsg("", S.data.mine ? "<b>Vote saved.</b> You can change it or tap it again to remove it." : "<b>How it works.</b> Type your name once, then tap &ldquo;Vote for this villa&rdquo; on your pick."); }
+    else if (res && res.ok) { apply(res); S.offline = false; if (!(S.data.closed)) setMsg("", S.data.mine ? "<b>Vote saved.</b> You can change it or tap it again to remove it." : "<b>Vote removed.</b> Tap a villa to vote again."); }
     else throw new Error("bad");
   }).catch(function(){
     if (!quiet) setMsg("warn", "<b>That did not go through.</b> Check your connection and tap again. Your vote only counts once you see &ldquo;Vote saved&rdquo;.");
@@ -291,21 +297,68 @@ grid.addEventListener("click", function(e){
   run(mine === villa ? { action: "unvote" } : { action: "vote", villa: villa });
 });
 
+function plain(s){ return String(s).replace(/[<>&"]/g, ""); }
+function failed(){ setMsg("warn", "<b>That did not go through.</b> Check your connection and try again."); }
+
 $("namebox").addEventListener("submit", function(e){
   e.preventDefault();
-  var n = strip($("name").value);
-  if (n.length < 2) { $("name").focus(); return; }
-  S.name = n; store("villaVoteName", n); $("namebox").classList.remove("need");
-  setMsg("", "<b>Hi " + n.replace(/[<>&"]/g, "") + ".</b> Now tap a villa.");
-  run({ action: "state" }, true);
+  if (S.busy) return;
+  var n = strip($("name").value), old = S.name;
+  if (n.length < 2) { $("name").focus(); setMsg("warn", "<b>Enter at least 2 letters.</b>"); return; }
+  if (!old) {
+    S.name = n; S.editing = false; store("villaVoteName", n);
+    setMsg("", "<b>Hi " + plain(n) + ".</b> Now tap a villa. You can change or remove your name at any time.");
+    run({ action: "state" }, true);
+    return;
+  }
+  if (n === old) { S.editing = false; render(); return; }
+  var had = S.data && S.data.mine, closed = S.data && S.data.closed;
+  S.busy = true; render();
+  var steps = Promise.resolve();
+  if (had && !closed && n.toLowerCase() !== old.toLowerCase()) {
+    steps = api({ action: "unvote", name: old }).then(function(){ return api({ action: "state", name: n }); }).then(function(r){
+      if (r && r.ok && !r.mine) return api({ action: "vote", name: n, villa: had });
+      return r;
+    });
+  } else {
+    steps = api({ action: "state", name: n });
+  }
+  steps.then(function(res){
+    if (!res || !res.ok) throw new Error("bad");
+    S.name = n; S.editing = false; store("villaVoteName", n); apply(res);
+    setMsg("", "<b>Name changed to " + plain(n) + ".</b>" + (had && !closed ? " Your vote moved with it." : ""));
+  }).catch(failed).then(function(){ S.busy = false; render(); });
 });
 $("namechange").addEventListener("click", function(){
-  S.name = ""; store("villaVoteName", ""); $("name").value = "";
-  render(); $("name").focus();
+  S.editing = true; $("name").value = S.name; render(); $("name").focus(); $("name").select();
+});
+$("namecancel").addEventListener("click", function(){ S.editing = false; $("name").value = S.name; render(); });
+var removeTimer = null;
+$("nameremove").addEventListener("click", function(){
+  if (S.busy) return;
+  var had = S.data && S.data.mine && !S.data.closed;
+  var btn = $("nameremove");
+  if (had && !S.confirmRemove) {
+    S.confirmRemove = true; btn.textContent = "Tap again: remove name and vote";
+    clearTimeout(removeTimer); removeTimer = setTimeout(function(){ S.confirmRemove = false; btn.textContent = "Remove name"; }, 5000);
+    return;
+  }
+  clearTimeout(removeTimer); S.confirmRemove = false; btn.textContent = "Remove name";
+  var done = function(res){
+    S.name = ""; S.editing = false; store("villaVoteName", ""); $("name").value = "";
+    if (res && res.ok) apply(res); else if (S.data) S.data.mine = null;
+    setMsg("", "<b>Name removed.</b>" + (had ? " Your vote was removed too." : "") + " Enter a name to vote again.");
+  };
+  S.busy = true; render();
+  (had ? api({ action: "unvote", name: S.name }) : Promise.resolve(null)).then(function(res){
+    if (had && !(res && res.ok)) throw new Error("bad");
+    return had ? api({ action: "state", name: "" }) : null;
+  }).then(done).catch(failed).then(function(){ S.busy = false; render(); if (!S.name) $("name").focus(); });
 });
 if (S.name) $("name").value = S.name;
 
 render();
+if (!S.name) { try { $("name").focus(); } catch (e) {} }
 api({ action: "state", name: S.name }).then(function(res){ if (res && res.ok) apply(res); else throw 0; render(); })
   .catch(function(){ setMsg("warn", "<b>The vote could not be reached.</b> Reload the page. If it keeps failing, check your connection."); });
 setInterval(refresh, 20000);
